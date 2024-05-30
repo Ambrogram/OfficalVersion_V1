@@ -1,5 +1,5 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
+import customtkinter as ctk
+from tkinter import messagebox
 import random
 import time
 import datetime
@@ -10,9 +10,10 @@ class TestRunner:
         self.settings = settings
         self.app = app  # Store the app reference
         
-        self.root = tk.Toplevel(parent)
+        self.root = ctk.CTkToplevel(parent)
         self.root.title("Reaction Time Test")
-        
+        self.root.geometry("1024x576")  # 16:9 aspect ratio
+
         self.event_counter = 0
         self.correct_answers = 0
         self.current_color = ''
@@ -40,15 +41,10 @@ class TestRunner:
             'c': 'Cyan'
         }
         
-        self.canvas = tk.Canvas(self.root, width=600, height=400, bg='black')
-        self.canvas.pack()
+        self.canvas = ctk.CTkCanvas(self.root, width=960, height=540, bg='black')
+        self.canvas.pack(pady=30)  # Add padding to move it down
 
-        # Create a style object
-        self.style = ttk.Style()
-        self.style.configure("TLabel", background="black", foreground="white", font=('Helvetica', 16))
-
-        # Apply the style to the label
-        self.feedback_label = ttk.Label(self.root, text="", style="TLabel")
+        self.feedback_label = ctk.CTkLabel(self.root, text="", font=('Helvetica', 16), text_color='white', fg_color='black')
         self.feedback_label.pack(pady=10)
         
         self.root.bind("<KeyPress>", self.record_response)
@@ -73,7 +69,7 @@ class TestRunner:
             x0, y0 = random.randint(50, 550), random.randint(50, 350)
             self.canvas.create_oval(x0, y0, x0 + 100, y0 + 100, fill=fill, outline="")
         else:
-            self.canvas.create_text(300, 200, text=text, fill=fill, font=('Helvetica', 32))
+            self.canvas.create_text(480, 270, text=text, fill=fill, font=('Helvetica', 32))
 
         self.event_counter += 1
         if self.event_counter < self.settings['events']:  # Schedule next stimulus only if more events are left
@@ -91,28 +87,28 @@ class TestRunner:
             if correct:
                 self.correct_answers += 1
 
-            self.feedback_label.config(text=f"{'Correct' if correct else 'Incorrect'}. Total correct: {self.correct_answers}/{self.event_counter}")
+            self.feedback_label.configure(text=f"{'Correct' if correct else 'Incorrect'}. Total correct: {self.correct_answers}/{self.event_counter}")
             print(f"Response recorded. Total correct: {self.correct_answers}/{self.event_counter}")  # Debug print
 
     def finish_test(self):
         print("Finishing test...")  # Debug print
         total_test_time = time.time() - self.test_start_time
         correct_rate = (self.correct_answers / self.event_counter) * 100
-        self.feedback_label.config(text=f"Test complete. Correct Rate: {correct_rate:.2f}%, Total Time Cost: {total_test_time:.2f} seconds")
+        self.feedback_label.configure(text=f"Test complete. Correct Rate: {correct_rate:.2f}%, Total Time Cost: {total_test_time:.2f} seconds")
         self.root.unbind("<KeyPress>")
 
         # Show options to save to database or retake test
         self.show_finish_options(total_test_time, correct_rate)
 
     def show_finish_options(self, total_test_time, correct_rate):
-        options_frame = ttk.Frame(self.root)
+        options_frame = ctk.CTkFrame(self.root)
         options_frame.pack(pady=20)
 
-        save_button = ttk.Button(options_frame, text="Save to Database", command=lambda: self.save_test_results(total_test_time, correct_rate))
-        save_button.pack(side=tk.LEFT, padx=10)
+        save_button = ctk.CTkButton(options_frame, text="Save to Database", command=lambda: self.save_test_results(total_test_time, correct_rate))
+        save_button.pack(side="left", padx=10)
 
-        retake_button = ttk.Button(options_frame, text="Retake Test", command=self.retake_test)
-        retake_button.pack(side=tk.LEFT, padx=10)
+        retake_button = ctk.CTkButton(options_frame, text="Retake Test", command=self.retake_test)
+        retake_button.pack(side="left", padx=10)
 
     def save_test_results(self, total_test_time, correct_rate):
         test_info = {

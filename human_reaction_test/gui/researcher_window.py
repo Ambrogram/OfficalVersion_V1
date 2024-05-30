@@ -1,99 +1,141 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
-from database.db_operations import insert_participant, get_participant_by_name  # Add get_participant_by_name import
+import customtkinter as ctk
+from tkinter import messagebox, Listbox  # Import Listbox from tkinter
+from database.db_operations import insert_participant, get_participant_by_name, get_all_participants
 from settings.settings_manager import SettingsManager
+# from analysis.data_analysis import analyze_results  # Assuming this module exists
 
 class ResearcherWindow:
     def __init__(self, root, app):
-        self.root = tk.Toplevel(root)
-        self.root.title("Researcher Window")
-        self.root.geometry("500x550")  # Increased height to accommodate search functionality
+        self.root = ctk.CTkToplevel(root)
+        self.root.title("Researcher Dashboard")
+        self.root.geometry("1024x576")
         self.app = app
-        
+
         self.root.configure(bg='#2d2d2d')
         
-        self.settings_manager = None
+        self.settings_manager = None  # Initialize settings_manager here
 
-        # Add settings icon and title
-        settings_icon = ttk.Button(self.root, text="⚙️ Settings", command=self.open_settings)
-        settings_icon.grid(row=0, column=1, sticky=tk.E, padx=10, pady=10)
+        # Title
+        title_label = ctk.CTkLabel(self.root, text="Researcher Dashboard", font=("Helvetica", 16, "bold"))
+        title_label.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w")
 
-        title_label = ttk.Label(self.root, text="Participant Information", font=("Helvetica", 16, "bold"), background='#2d2d2d', foreground='white')
-        title_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        # Dashboard buttons
+        self.create_dashboard_buttons()
 
-        # Search Field
+    def create_dashboard_buttons(self):
+        view_participants_button = ctk.CTkButton(self.root, text="View Participants", command=self.view_participants)
+        view_participants_button.grid(row=1, column=0, pady=20, padx=20, sticky="ew")
+
+        manage_tests_button = ctk.CTkButton(self.root, text="Manage Tests", command=self.manage_tests)
+        manage_tests_button.grid(row=2, column=0, pady=20, padx=20, sticky="ew")
+
+        view_results_button = ctk.CTkButton(self.root, text="View Results", command=self.view_results)
+        view_results_button.grid(row=3, column=0, pady=20, padx=20, sticky="ew")
+
+    def view_participants(self):
+        self.clear_window()
+        title_label = ctk.CTkLabel(self.root, text="Participant Information", font=("Helvetica", 16, "bold"))
+        title_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        
         self.create_search_field()
-
-        # Participant Information Form
         self.create_form()
 
-    def create_search_field(self):
-        ttk.Label(self.root, text="Search Participant Name:", background='#2d2d2d', foreground='white').grid(row=1, column=0, pady=10, padx=20, sticky=tk.W)
-        self.search_entry = ttk.Entry(self.root)
-        self.search_entry.grid(row=1, column=1, pady=10, padx=20, sticky=tk.EW)
+        # Display all participants
+        participants = get_all_participants()
+        if participants:
+            self.display_participants(participants)
 
-        search_button = ttk.Button(self.root, text="Search", command=self.search_participant)
-        search_button.grid(row=1, column=2, pady=10, padx=10, sticky=tk.W)
+    def manage_tests(self):
+        self.clear_window()
+        title_label = ctk.CTkLabel(self.root, text="Manage Tests", font=("Helvetica", 16, "bold"))
+        title_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        
+        # Include settings functionality here
+        settings_button = ctk.CTkButton(self.root, text="Open Settings", command=self.open_settings)
+        settings_button.grid(row=1, column=0, pady=20, padx=20, sticky="ew")
+
+    def view_results(self):
+        self.clear_window()
+        title_label = ctk.CTkLabel(self.root, text="Test Results", font=("Helvetica", 16, "bold"))
+        title_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        
+        # Retrieve and display test results
+        results = analyze_results()  # Assuming this function exists and returns test results
+        results_text = ctk.CTkTextbox(self.root)
+        results_text.insert("end", results)
+        results_text.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+
+    def clear_window(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+    def create_search_field(self):
+        ctk.CTkLabel(self.root, text="Search Participant Name:").grid(row=1, column=0, pady=10, padx=20, sticky="w")
+        self.search_entry = ctk.CTkEntry(self.root)
+        self.search_entry.grid(row=1, column=1, pady=10, padx=20, sticky="ew")
+
+        search_button = ctk.CTkButton(self.root, text="Search", command=self.search_participant)
+        search_button.grid(row=1, column=2, pady=10, padx=10, sticky="w")
 
     def create_form(self):
-        ttk.Label(self.root, text="First Name:", background='#2d2d2d', foreground='white').grid(row=2, column=0, pady=10, padx=20, sticky=tk.W)
-        self.first_name_entry = ttk.Entry(self.root)
-        self.first_name_entry.grid(row=2, column=1, pady=10, padx=20, sticky=tk.EW)
+        ctk.CTkLabel(self.root, text="First Name:").grid(row=2, column=0, pady=10, padx=20, sticky="w")
+        self.first_name_entry = ctk.CTkEntry(self.root)
+        self.first_name_entry.grid(row=2, column=1, pady=10, padx=20, sticky="ew")
 
-        ttk.Label(self.root, text="Last Name:", background='#2d2d2d', foreground='white').grid(row=3, column=0, pady=10, padx=20, sticky=tk.W)
-        self.last_name_entry = ttk.Entry(self.root)
-        self.last_name_entry.grid(row=3, column=1, pady=10, padx=20, sticky=tk.EW)
+        ctk.CTkLabel(self.root, text="Last Name:").grid(row=3, column=0, pady=10, padx=20, sticky="w")
+        self.last_name_entry = ctk.CTkEntry(self.root)
+        self.last_name_entry.grid(row=3, column=1, pady=10, padx=20, sticky="ew")
 
         # Age
-        ttk.Label(self.root, text="Age:", background='#2d2d2d', foreground='white').grid(row=4, column=0, pady=10, padx=20, sticky=tk.W)
-        self.age_entry = ttk.Entry(self.root)
-        self.age_entry.grid(row=4, column=1, pady=10, padx=20, sticky=tk.EW)
+        ctk.CTkLabel(self.root, text="Age:").grid(row=4, column=0, pady=10, padx=20, sticky="w")
+        self.age_entry = ctk.CTkEntry(self.root)
+        self.age_entry.grid(row=4, column=1, pady=10, padx=20, sticky="ew")
 
         # Gender
-        ttk.Label(self.root, text="Gender:", background='#2d2d2d', foreground='white').grid(row=5, column=0, pady=10, padx=20, sticky=tk.W)
-        self.gender_var = tk.StringVar()
-        self.gender_combobox = ttk.Combobox(self.root, textvariable=self.gender_var, values=["Male", "Female", "Other"], state="readonly")
-        self.gender_combobox.grid(row=5, column=1, pady=10, padx=20, sticky=tk.EW)
+        ctk.CTkLabel(self.root, text="Gender:").grid(row=5, column=0, pady=10, padx=20, sticky="w")
+        self.gender_var = ctk.StringVar()
+        self.gender_combobox = ctk.CTkComboBox(self.root, variable=self.gender_var, values=["Male", "Female", "Other"])
+        self.gender_combobox.grid(row=5, column=1, pady=10, padx=20, sticky="ew")
 
         # Education
-        self.education_var = tk.StringVar()
-        self.education_combobox = ttk.Combobox(self.root, textvariable=self.education_var, 
+        self.education_var = ctk.StringVar()
+        self.education_combobox = ctk.CTkComboBox(self.root, variable=self.education_var, 
                                         values=["-- select one --", "No formal education", "Primary education", 
                                                 "Secondary education or high school", "GED", "Vocational qualification", 
-                                                "Bachelor's degree", "Master's degree", "Doctorate or higher"], state="readonly")
+                                                "Bachelor's degree", "Master's degree", "Doctorate or higher"])
         self.education_combobox.set("-- select one --")  # Default value
-        ttk.Label(self.root, text="Education:", background='#2d2d2d', foreground='white').grid(row=6, column=0, pady=10, padx=20, sticky=tk.W)
-        self.education_combobox.grid(row=6, column=1, pady=10, padx=20, sticky=tk.EW)
+        ctk.CTkLabel(self.root, text="Education:").grid(row=6, column=0, pady=10, padx=20, sticky="w")
+        self.education_combobox.grid(row=6, column=1, pady=10, padx=20, sticky="ew")
 
         # Occupation
         occupation_options = ["Pilots", "Race Car Drivers", "Video Game Testers", "Professional Gamers",
                             "Paramedics", "Firefighters", "Police Officers", "Military Personnel",
                             "Sprinters", "Soccer Players", "none of the above"]
 
-        self.occupation_var = tk.StringVar()
-        self.occupation_combobox = ttk.Combobox(self.root, textvariable=self.occupation_var, values=occupation_options, state="readonly")
+        self.occupation_var = ctk.StringVar()
+        self.occupation_combobox = ctk.CTkComboBox(self.root, variable=self.occupation_var, values=occupation_options)
         self.occupation_combobox.set("none of the above")  # Default value
-        ttk.Label(self.root, text="Occupation:", background='#2d2d2d', foreground='white').grid(row=7, column=0, pady=10, padx=20, sticky=tk.W)
-        self.occupation_combobox.grid(row=7, column=1, pady=10, padx=20, sticky=tk.EW)
+        ctk.CTkLabel(self.root, text="Occupation:").grid(row=7, column=0, pady=10, padx=20, sticky="w")
+        self.occupation_combobox.grid(row=7, column=1, pady=10, padx=20, sticky="ew")
 
         # Color Blind
-        ttk.Label(self.root, text="Color Blind:", background='#2d2d2d', foreground='white').grid(row=8, column=0, pady=10, padx=20, sticky=tk.W)
-        self.color_blind_var = tk.StringVar()
-        self.color_blind_combobox = ttk.Combobox(self.root, textvariable=self.color_blind_var, values=["Yes", "No"], state="readonly")
-        self.color_blind_combobox.grid(row=8, column=1, pady=10, padx=20, sticky=tk.EW)
+        ctk.CTkLabel(self.root, text="Color Blind:").grid(row=8, column=0, pady=10, padx=20, sticky="w")
+        self.color_blind_var = ctk.StringVar()
+        self.color_blind_combobox = ctk.CTkComboBox(self.root, variable=self.color_blind_var, values=["Yes", "No"])
+        self.color_blind_combobox.grid(row=8, column=1, pady=10, padx=20, sticky="ew")
 
         # Medical History
         medical_history_options = ["Neurological Disorders", "Mental Health Issues", "Substance Abuse Disorders",
                                 "Sleep Disorders", "Chronic Fatigue Syndrome", "none of the above"]
 
-        self.medical_history_var = tk.StringVar()
-        self.medical_history_combobox = ttk.Combobox(self.root, textvariable=self.medical_history_var, values=medical_history_options, state="readonly")
+        self.medical_history_var = ctk.StringVar()
+        self.medical_history_combobox = ctk.CTkComboBox(self.root, variable=self.medical_history_var, values=medical_history_options)
         self.medical_history_combobox.set("none of the above")  # Default value
-        ttk.Label(self.root, text="Medical History:", background='#2d2d2d', foreground='white').grid(row=9, column=0, pady=10, padx=20, sticky=tk.W)
-        self.medical_history_combobox.grid(row=9, column=1, pady=10, padx=20, sticky=tk.EW)
+        ctk.CTkLabel(self.root, text="Medical History:").grid(row=9, column=0, pady=10, padx=20, sticky="w")
+        self.medical_history_combobox.grid(row=9, column=1, pady=10, padx=20, sticky="ew")
 
         # Save button
-        save_button = ttk.Button(self.root, text="Save Participant", command=self.save_participant)
+        save_button = ctk.CTkButton(self.root, text="Save Participant", command=self.save_participant)
         save_button.grid(row=10, column=0, columnspan=2, pady=20)
 
     def save_participant(self):
@@ -105,7 +147,7 @@ class ResearcherWindow:
             'Education': self.education_combobox.get(),
             'Occupation': self.occupation_combobox.get(),
             'ColorBlind': self.color_blind_var.get(),
-            'MedicalHistory': self.medical_history_var.get()
+            'MedicalHistory': self.medical_history_combobox.get()
         }
 
         # Save participant info to the database
@@ -128,16 +170,16 @@ class ResearcherWindow:
             messagebox.showerror("Error", "Participant not found.")
 
     def select_participant_window(self, participants):
-        select_window = tk.Toplevel(self.root)
+        select_window = ctk.CTkToplevel(self.root)
         select_window.title("Select Participant")
         select_window.geometry("400x300")
 
-        ttk.Label(select_window, text="Select Participant", font=("Helvetica", 16, "bold")).pack(pady=10)
+        ctk.CTkLabel(select_window, text="Select Participant", font=("Helvetica", 16, "bold")).pack(pady=10)
 
-        listbox = tk.Listbox(select_window)
+        listbox = Listbox(select_window)
         for participant in participants:
-            listbox.insert(tk.END, f"{participant['ParticipantID']}: {participant['FirstName']} {participant['LastName']}")
-        listbox.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+            listbox.insert("end", f"{participant['ParticipantID']}: {participant['FirstName']} {participant['LastName']}")
+        listbox.pack(pady=10, padx=10, fill="both", expand=True)
 
         def on_select(event):
             selected = listbox.get(listbox.curselection())
@@ -149,13 +191,13 @@ class ResearcherWindow:
         listbox.bind("<<ListboxSelect>>", on_select)
 
     def populate_form(self, participant):
-        self.first_name_entry.delete(0, tk.END)
+        self.first_name_entry.delete(0, "end")
         self.first_name_entry.insert(0, participant['FirstName'])
 
-        self.last_name_entry.delete(0, tk.END)
+        self.last_name_entry.delete(0, "end")
         self.last_name_entry.insert(0, participant['LastName'])
 
-        self.age_entry.delete(0, tk.END)
+        self.age_entry.delete(0, "end")
         self.age_entry.insert(0, participant['Age'])
 
         self.gender_var.set(participant['Gender'])
@@ -172,3 +214,9 @@ class ResearcherWindow:
 
     def set_settings(self, settings):
         self.app.settings = settings  # Store selected settings in the shared attribute
+
+    def display_participants(self, participants):
+        participants_listbox = Listbox(self.root)
+        for participant in participants:
+            participants_listbox.insert("end", f"{participant['ParticipantID']}: {participant['FirstName']} {participant['LastName']}")
+        participants_listbox.grid(row=11, column=0, columnspan=3, padx=10, pady=10, sticky="ew")

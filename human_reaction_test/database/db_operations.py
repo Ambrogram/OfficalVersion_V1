@@ -127,6 +127,22 @@ def get_participant_by_name(participant_name):
             cursor.close()
             connection.close()
             
+def get_all_participants():
+    connection = connect_db()
+    if connection is None:
+        return None
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Participants")
+        participants = cursor.fetchall()
+        return participants
+    except Error as e:
+        print("Error retrieving participants:", e)
+        return None
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
 def insert_test_record(test_info):
     connection = connect_db()
