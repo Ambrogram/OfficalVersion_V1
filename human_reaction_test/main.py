@@ -35,7 +35,7 @@ class App:
 def main():
     ctk.set_appearance_mode("dark")
     # Update the path to the theme file
-    theme_path = "d:/YZW_SDE/PythonProject/HR/OfficalVersion_V1/human_reaction_test/NightTrain.json"
+    theme_path = "./OfficalVersion_V1/human_reaction_test/NightTrain.json"
     ctk.set_default_color_theme(theme_path)
     root = ctk.CTk()
     root.title("Welcome to the Reaction Time Test")
